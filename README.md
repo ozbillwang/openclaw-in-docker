@@ -25,14 +25,15 @@ cd openclaw-in-docker
 Default:
 
 ```bash
-export OPENCLAW_IMAGE="alpine/openclaw:latest"
+export OPENCLAW_IMAGE="alpine/openclaw:main"
 ```
 
-> Note: recently, `latest` has had issues for some users, no models you can choice.
-> If you hit problems, switch to:
+> Note: `main` is the setup script default because it currently avoids issues
+> some users have seen with `latest`.
+> If you prefer the release tag, switch to:
 
 ```bash
-export OPENCLAW_IMAGE="alpine/openclaw:main"
+export OPENCLAW_IMAGE="alpine/openclaw:latest"
 ```
 
 ## 3) Run the setup script
@@ -44,9 +45,15 @@ export OPENCLAW_IMAGE="alpine/openclaw:main"
 This script will:
 
 * pull openclaw gateway image
-* Launch an onboarding wizard
+* Create baseline OpenClaw config non-interactively
 * Start the gateway via Docker Compose
 * Generate a gateway token and store it in .env
+
+After the gateway is running, you can run the interactive onboarding wizard:
+
+```bash
+docker compose run --rm openclaw-cli onboard --no-install-daemon
+```
 ---
 
 ### 4) Upgrade OpenClaw

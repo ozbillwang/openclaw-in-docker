@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
 EXTRA_COMPOSE_FILE="$ROOT_DIR/docker-compose.extra.yml"
-IMAGE_NAME="${OPENCLAW_IMAGE:-openclaw:local}"
+IMAGE_NAME="${OPENCLAW_IMAGE:-alpine/openclaw:main}"
 EXTRA_MOUNTS="${OPENCLAW_EXTRA_MOUNTS:-}"
 HOME_VOLUME_NAME="${OPENCLAW_HOME_VOLUME:-}"
 
@@ -184,18 +184,31 @@ upsert_env "$ENV_FILE" \
 #   "$ROOT_DIR"
 
 echo ""
-echo "==> Onboarding (interactive)"
-echo "When prompted:"
-echo "  - Gateway bind: lan"
-echo "  - Gateway auth: token"
-echo "  - Gateway token: $OPENCLAW_GATEWAY_TOKEN"
-echo "  - Tailscale exposure: Off"
-echo "  - Install Gateway daemon: No"
+echo "==> Pulling Docker image: $IMAGE_NAME"
+docker pull "$IMAGE_NAME"
+
 echo ""
-docker compose "${COMPOSE_ARGS[@]}" run --rm openclaw-cli onboard --no-install-daemon
+echo "==> Creating baseline OpenClaw config"
+docker compose "${COMPOSE_ARGS[@]}" run --rm openclaw-cli onboard \
+  --non-interactive \
+  --accept-risk \
+  --mode local \
+  --auth-choice skip \
+  --gateway-bind "$OPENCLAW_GATEWAY_BIND" \
+  --gateway-auth token \
+  --gateway-token "$OPENCLAW_GATEWAY_TOKEN" \
+  --tailscale off \
+  --no-install-daemon \
+  --skip-health \
+  --skip-channels \
+  --skip-ui \
+  --skip-skills \
+  --workspace /home/node/.openclaw/workspace
 
 echo ""
 echo "==> Provider setup (optional)"
+echo "Interactive onboarding:"
+echo "  ${COMPOSE_HINT} run --rm openclaw-cli onboard --no-install-daemon"
 echo "WhatsApp (QR):"
 echo "  ${COMPOSE_HINT} run --rm openclaw-cli channels login"
 echo "Telegram (bot token):"
